@@ -1,3 +1,14 @@
+# *****************************************************************************
+# *****************************************************************************
+#
+#		Name:		process.rb
+#		Author:		Paul Robson (paul@robsons.org.uk)
+#		Date:		5th September 2021
+#		Reviewed: 	No
+#		Purpose:	Extract airport data, project to 2D and export.
+#
+# *****************************************************************************
+# *****************************************************************************
 #
 # 		Represents one airport
 #
@@ -27,6 +38,20 @@ class Airport
 		@data [15].to_f
 	end
 
+	def xProject
+		r = 1.0/(2*Math::PI)
+		r * to_r(longtitude+180.0) 
+	end
+
+	def yProject
+		r = 1.0/(2*Math::PI)
+		r * Math.log(Math.tan(Math::PI / 4.0 + to_r(latitude) / 2.0),Math::E)
+	end
+
+	def to_r d
+		Math::PI / 180.0 * d
+	end
+
 	def capitalize_all(str)
 		str.gsub("-"," ").split(" ").collect { |a| a.downcase.capitalize }.join " "
 	end
@@ -35,7 +60,7 @@ end
 #
 # 		Represents the main database.
 #
-class AirportDatabase
+class Airport_Database
 	def initialize
 		iataList = open("iata.list").read.split
 		@all_airports = {}
@@ -46,7 +71,7 @@ class AirportDatabase
 	end
 
 	def get_all_airports
-		@all_airports.keys.sort_by {|k| @all_airports[k].icao }
+		@all_airports.keys.sort_by {|k| @all_airports[k].iata }
 	end
 
 	def get_airport(iata)
@@ -60,15 +85,15 @@ class AirportDatabase
 	end
 
 	def render_one(h,air)
-		elements = [air.icao,air.name,air.city,air.country,air.latitude.to_s,air.longtitude.to_s]
+		elements = [air.icao,air.name,air.city,air.country,air.latitude.to_s,air.longtitude.to_s,air.xProject.to_s,air.yProject.to_s]
 		h.syswrite (elements.collect { |a| '"'+a+'"'}.join ",")+"\n"
 	end
 end
 
 if __FILE__ == $0 
-	db = AirportDatabase.new
+	db = Airport_Database.new
 	db.create("test.txt")
 	air = db.get_airport("LGW")
-	puts "#{air.icao} #{air.iata} #{air.name} #{air.city} #{air.country} #{air.latitude} #{air.longtitude}"
-	puts db.get_all_airports.join(" ")
+	puts "#{air.icao} #{air.iata} #{air.name} #{air.city} #{air.country} #{air.latitude} #{air.longtitude} #{air.xProject} #{air.yProject}"
+	#puts db.get_all_airports.join(" ")
 end
