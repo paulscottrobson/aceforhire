@@ -45,13 +45,17 @@ class AirportDatabase
 		end		
 	end
 
+	def get_all_airports
+		@all_airports.keys.sort_by {|k| @all_airports[k].icao }
+	end
+
 	def get_airport(iata)
 		@all_airports[iata.upcase]
 	end
 
 	def create(target)
 		h = open(target,"w")
-		@all_airports.keys.each { |a| render_one(h,@all_airports[a]) }
+		get_all_airports.each { |a| render_one(h,@all_airports[a]) }
 		h.close
 	end
 
@@ -61,9 +65,10 @@ class AirportDatabase
 	end
 end
 
-db = AirportDatabase.new
-
-db.create("test.txt")
-
-air = db.get_airport("LGW")
-puts "#{air.icao} #{air.iata} #{air.name} #{air.city} #{air.country} #{air.latitude} #{air.longtitude}"
+if __FILE__ == $0 
+	db = AirportDatabase.new
+	db.create("test.txt")
+	air = db.get_airport("LGW")
+	puts "#{air.icao} #{air.iata} #{air.name} #{air.city} #{air.country} #{air.latitude} #{air.longtitude}"
+	puts db.get_all_airports.join(" ")
+end
