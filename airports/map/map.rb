@@ -12,12 +12,25 @@ class ImageCreator
 		[@image.width,@image.height]
 	end
 	def centre
-		[535,246]
+		[1005,494]
 	end
 	def southAmericaLat
-		413
+		810
 	end
 end
+
+class GfxImageCreator <ImageCreator
+	def initialize
+		@image = Image.new("map2.jpg")
+	end
+	def centre
+		[@image.width/2,@image.height/2]
+	end
+	def southAmericaLat
+		875
+	end
+end
+
 
 class MapDisplay 
 	def initialize(image,scale = 100) 
@@ -34,18 +47,20 @@ class MapDisplay
 		Window.on :key do |e| Window.close end
 
 		@scalar = 0 															# no scalar, yet.
-		convert(0,55)
+		convert(0,55.5)
 
 		plot(0,0,"white")
 		plot(-180,0,"green")
 		plot(180,0,"yellow")
 
-		plot(-73.995,41.145,"yellow")  											# New York
+		plot(-73.995,41.145,"red")  											# New York
 		plot(144.04,-37.9,"red") 												# Melbourne
-		plot(-67.29,-55.83,"red") 												# SA tip
-		plot(-0.45,51.46,"red")													# LHR
+		plot(-67.29,-55.5,"red") 												# SA tip
+		plot(-0.45,51.46,"yellow")												# LHR
 		plot(157.23,50.88,"red") 												# Tip of long Siberian Island
 		plot(-155.37,19.51,"red")												# Hawaii
+		plot(19.887,-34.969,"red")
+		plot(-19.887,-34.969,"red")
 	end 
 
 	def plot(x,y,col)
@@ -54,11 +69,11 @@ class MapDisplay
 	end 
 
 	def draw(x,y,colour = "yellow")
-		Circle.new(x:x,y:y,radius:5,color:colour)
+		Circle.new(x:x,y:y,radius:3,color:colour)
 	end
 
 	def to_r(d)
-		d * Math::PI / 180.0
+		Math::PI / 180.0 * d
 	end
 
 	def display
@@ -76,19 +91,14 @@ class MapDisplay
 		#
 		yo = r * Math.log(Math.tan(Math::PI / 4.0 + to_r(lat) / 2.0),Math::E)
 		if @scalar == 0 
-			yos = (@image.centre[1]-@image.southAmericaLat).abs 			
+			yos = @image.centre[1]-@image.southAmericaLat			
 			@scalar = (1.0 * yos / yo).abs
-			puts yo,yos,@scalar
+			puts @scalar
 		end
 		[x,@image.centre[1]*@scale/100-yo*@scalar*@scale/100]
 	end
 end
 
-md = MapDisplay.new(ImageCreator.new)
+md = MapDisplay.new(GfxImageCreator.new)
 md.display
 
-
-# Size 1122 x 453 
-# 0 deg Greenwich Meridian = 563 across
-# 0 deg Equator (Islands just south of Singapore) 266 down
-# -55 deg Southern tip of South American Continent 433 down
