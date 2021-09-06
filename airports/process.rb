@@ -9,9 +9,13 @@
 #
 # *****************************************************************************
 # *****************************************************************************
+
+# *****************************************************************************
 #
-# 		Represents one airport
+# 							Represents one airport
 #
+# *****************************************************************************
+
 class Airport
 	def initialize(line)
 		@data = line.strip().split(":")
@@ -45,7 +49,7 @@ class Airport
 
 	def yProject
 		r = 1.0/(2*Math::PI)
-		r * Math.log(Math.tan(Math::PI / 4.0 + to_r(latitude) / 2.0),Math::E)
+		r * Math.log(Math.tan(Math::PI / 4.0 + to_r(latitude) / 2.0),Math::E) * 0.5 / 0.275
 	end
 
 	def to_r d
@@ -57,9 +61,14 @@ class Airport
 	end
 
 end
+
+# *****************************************************************************
 #
-# 		Represents the main database.
+# 						Represents the main database.
+# 	(probably the renderer should be a seperate class but can't be bothered)
 #
+# *****************************************************************************
+
 class Airport_Database
 	def initialize
 		iataList = open("iata.list").read.split
@@ -80,15 +89,50 @@ class Airport_Database
 
 	def create(target)
 		h = open(target,"w")
+		render_start h
 		get_all_airports.each { |a| render_one(h,@all_airports[a]) }
+		render_end h
 		h.close
 	end
 
-	def render_one(h,air)
+	def render_start(h) 
+	end 
+	def render_end(h) 
+	end 
+
+	def render_one(h,air)		
 		elements = [air.icao,air.name,air.city,air.country,air.latitude.to_s,air.longtitude.to_s,air.xProject.to_s,air.yProject.to_s]
 		h.syswrite (elements.collect { |a| '"'+a+'"'}.join ",")+"\n"
 	end
+
+	def warning
+		"This file was automatically generated"
+	end
 end
+
+# *****************************************************************************
+#
+# 									Ruby version
+#
+# *****************************************************************************
+
+class Airport_Database_Ruby < Airport_Database
+	def render_start(h) 
+		h.write("#\n#\t#{warning}\n#\n")
+		h.write "class Airport_Database\ndef get\n{\n"
+	end
+
+	def render_one(h,air)
+		elements = { icao:air.icao,name:air.name,city:air.city,country:air.country,
+					 latitude:air.latitude,longtitude:air.longtitude,x:air.xProject,y:air.yProject }
+		elements = '"'+air.icao+'" => '+elements.to_s
+		h.write elements+",\n"
+	end
+
+	def render_end(h)
+		h.write("}\nend\nend\n")
+	end	
+end 
 
 if __FILE__ == $0 
 	db = Airport_Database.new
@@ -96,4 +140,5 @@ if __FILE__ == $0
 	air = db.get_airport("LGW")
 	puts "#{air.icao} #{air.iata} #{air.name} #{air.city} #{air.country} #{air.latitude} #{air.longtitude} #{air.xProject} #{air.yProject}"
 	#puts db.get_all_airports.join(" ")
+	Airport_Database_Ruby.new.create("airportdb.rb")
 end

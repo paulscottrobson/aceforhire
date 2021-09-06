@@ -1,17 +1,17 @@
 # *****************************************************************************
 # *****************************************************************************
 #
-#		Name:		showairports.rb
+#		Name:		showairports2.rb
 #		Author:		Paul Robson (paul@robsons.org.uk)
-#		Date:		5th September 2021
+#		Date:		6th September 2021
 #		Reviewed: 	No
-#		Purpose:	Draw all airports on image.
+#		Purpose:	Draw all airports on image (uses generated class)
 #
 # *****************************************************************************
 # *****************************************************************************
 
 require "ruby2d"
-require "./process.rb"
+require "./airportdb.rb"
 
 # *****************************************************************************
 #
@@ -47,8 +47,8 @@ class Map_Display
 	end 
 
 	def draw_line(air1,air2)
-		a1 = convert_to_screen(air1.xProject,air1.yProject)
-		a2 = convert_to_screen(air2.xProject,air2.yProject)
+		a1 = convert_to_screen(air1[:x],air1[:y])
+		a2 = convert_to_screen(air2[:x],air2[:y])
 		Line.new(x1:a1[0],y1:a1[1],x2:a2[0],y2:a2[1],color:"black")
 	end
 
@@ -58,11 +58,11 @@ class Map_Display
 end
 
 md = Map_Display.new
-adb = Airport_Database.new 
-adb.get_all_airports.each do |key|
-	apt = adb.get_airport(key)
-	md.draw_from_projection apt.xProject,apt.yProject 
+data = Airport_Database.new.get
+data.each do |key,apt|
+	md.draw_from_projection apt[:x],apt[:y]
 end
-md.draw_line adb.get_airport("LGW"),adb.get_airport("MCO")
+md.draw_line data["EGGP"],data["KMCO"]
 md.display
+puts data
 
