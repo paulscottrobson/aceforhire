@@ -52,7 +52,7 @@ class Map_Display
 		w_max = calculate_position @a_max
 		scale_x = (@width/(w_max[:x]-w_min[:x])).abs  							# scalars for x and y
 		scale_y = (@height/(w_max[:y]-w_min[:y])).abs  					
-		@scale = [scale_x,scale_y].min  										# scale image by @scale
+		@scale = [[scale_x,scale_y].min*0.95,4].min  							# scale image by @scale
 	end
 	#
 	#  		Position to one on the image when not scaled/zoomed.
@@ -61,6 +61,36 @@ class Map_Display
 		x = p[:x] * @width
 		y = @height / 2 - p[:y] * @height * 1.00
 		{ x:x,y:y }
+	end
+	#
+	# 		Convert airport position to coordinate.
+	#
+	def calculate_airport_display_position(air)
+		ip = calculate_position(air) 											# position
+		ip[:x] = ip[:x] - @w_centre[:x]											# offset from centre point
+		ip[:y] = ip[:y] - @w_centre[:y]
+		ip[:x] = ip[:x] * @scale  												# scale up
+		ip[:y] = ip[:y] * @scale
+		ip[:x] = ip[:x] + @width/2												# and offset back
+		ip[:y] = ip[:y] + @height/2
+		ip
+	end
+	#
+	# 		Draw an airport data
+	#
+	def draw_airport(air)
+		p = calculate_airport_display_position air 
+		Circle.new(x:p[:x],y:p[:y],radius:8,color:"white")
+		Circle.new(x:p[:x],y:p[:y],radius:6,color:"red")
+		p
+	end
+	#
+	# 		Draw a flight 
+	#
+	def draw_flight(air1,air2)
+		c1 = draw_airport(air1)
+		c2 = draw_airport(air2)
+		Line.new(x1:c1[:x],y1:c1[:y],x2:c2[:x],y2:c2[:y],width:3,color:"yellow")
 	end
 	#
 	# 		Rescale and reposition image
@@ -77,13 +107,20 @@ class Map_Display
 	end
 end
 
-data = Airport_Database.new.get
-displayData = [ data["EGPD"],data["LEMG"],data["EIDW"],data["EGJJ"]]
+if __FILE__ == $0 
 
-md = Map_Display.new(displayData)
-#data.each do |key,apt|
-#	md.draw_from_projection apt[:x],apt[:y]
-#end
-#md.draw_line data["EGGP"],data["KMCO"]
-md.display
+	data = Airport_Database.new.get
+	displayData = [ data["EGPD"],data["LEMG"],data["EIDW"],data["EGJJ"],data["EDDM"]]
 
+	#displayData.append(data["YSSY"])
+
+	#displayData = data.collect { |key,value| value }
+
+	md = Map_Display.new(displayData)
+	displayData.each do |apt|
+		md.draw_airport apt
+	end
+	md.draw_flight(data["EDDM"],data["YSSY"])
+	md.display
+
+end
