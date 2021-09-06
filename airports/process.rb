@@ -75,7 +75,7 @@ class Airport_Database
 		@all_airports = {}
 		open("GlobalAirportDatabase/GlobalAirportDatabase.txt").readlines.each do |l| 
 			air = Airport.new l
-			@all_airports[air.iata] = air if iataList.include? air.iata
+			@all_airports[air.iata] = air if iataList.include?(air.iata) and (air.latitude != 0 or air.longtitude != 0)
 		end		
 	end
 
